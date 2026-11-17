@@ -1,0 +1,365 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Банковская карта</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #fbf3f5;
+        padding: 30px;
+        color: #876b7b;
+    }
+
+    h2 {
+        color: #9b7186;
+    }
+
+    .container {
+        display: flex;
+        gap: 50px;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin: 40px auto;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 320px;
+    }
+
+    input, select, button {
+        padding: 12px;
+        font-size: 15px;
+        border: 2px solid #e6cbd9;
+        border-radius: 10px;
+        background: #fffafa;
+        color: #876b7b;
+        outline: none;
+    }
+
+    input:focus, select:focus {
+        border-color: #bd91ac;
+    }
+
+    button {
+        background: #d6b1c6;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    button:hover {
+        background: #bd91ac;
+    }
+
+    .card {
+        width: 360px;
+        height: 210px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #b88ca9, #806b91);
+        color: white;
+        padding: 22px;
+        position: relative;
+        box-sizing: border-box;
+        box-shadow: 0 8px 20px rgba(150, 100, 130, 0.2);
+    }
+
+    .bankLogo {
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .cardNumber {
+        margin-top: 45px;
+        font-size: 21px;
+        letter-spacing: 2px;
+    }
+
+    .bottom {
+        position: absolute;
+        bottom: 20px;
+        left: 22px;
+        right: 22px;
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+    }
+
+    .owner {
+        text-transform: uppercase;
+        margin-top: 5px;
+    }
+
+    .date {
+        margin-top: 5px;
+    }
+
+    .systemLogo {
+        font-size: 22px;
+        font-weight: bold;
+        color: #ffe6a6;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        margin: 35px auto;
+        width: 100%;
+        border-collapse: collapse;
+        background: #fffafa;
+    }
+
+    th, td {
+        border: 1px solid #d6b1c6;
+        padding: 12px;
+        text-align: center;
+    }
+
+    th {
+        background: #ead7e2;
+        color: #876b7b;
+    }
+
+    td {
+        color: #876b7b;
+    }
+
+    @media (max-width: 600px) {
+        body {
+            padding: 15px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 360px;
+        }
+
+        form {
+            width: 100%;
+            max-width: 320px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<h2 style="text-align:center;">Заполни свою карту ♡</h2>
+
+<div class="container">
+
+    <form id="cardForm">
+
+        <input
+            type="text"
+            name="bank"
+            placeholder="Название банка"
+            required
+        >
+
+        <select name="system" required>
+            <option value="">Платёжная система</option>
+            <option value="VISA">VISA</option>
+            <option value="MasterCard">MasterCard</option>
+            <option value="МИР">МИР</option>
+        </select>
+
+        <input
+            type="text"
+            name="number"
+            placeholder="Номер карты (16 цифр)"
+            maxlength="16"
+            inputmode="numeric"
+            pattern="[0-9]{16}"
+            required
+        >
+
+        <input
+            type="text"
+            name="owner"
+            placeholder="Имя держателя карты"
+            required
+        >
+
+        <input
+            type="month"
+            name="date"
+            required
+        >
+
+        <button type="submit">Добавить карту ♡</button>
+        <button type="button" id="clearButton">Очистить</button>
+
+    </form>
+
+    <div class="card">
+
+        <div class="bankLogo">BANK</div>
+
+        <div class="cardNumber">0000 0000 0000 0000</div>
+
+        <div class="bottom">
+
+            <div>
+                <div class="owner">CARD HOLDER</div>
+                <div class="date">00/00</div>
+            </div>
+
+            <div class="systemLogo">VISA</div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<h2 style="text-align:center;">Добавленные карты ♡</h2>
+
+<div class="table-container">
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>Банк</th>
+                <th>Система</th>
+                <th>Номер</th>
+                <th>Держатель</th>
+                <th>Срок</th>
+            </tr>
+        </thead>
+
+        <tbody id="tableBody"></tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+    const form = document.forms.cardForm;
+
+    const bankLogo = document.querySelector(".bankLogo");
+    const cardNumber = document.querySelector(".cardNumber");
+    const owner = document.querySelector(".owner");
+    const date = document.querySelector(".date");
+    const systemLogo = document.querySelector(".systemLogo");
+
+    const tableBody = document.getElementById("tableBody");
+
+    // Обновляем миниатюру карты
+    function updateCard() {
+
+        bankLogo.innerText =
+            form.elements.bank.value || "BANK";
+
+        systemLogo.innerText =
+            form.elements.system.value || "VISA";
+
+        let number = form.elements.number.value;
+
+        number = number.replace(/(\d{4})(?=\d)/g, "$1 ");
+
+        cardNumber.innerText =
+            number || "0000 0000 0000 0000";
+
+        owner.innerText =
+            form.elements.owner.value || "CARD HOLDER";
+
+        let cardDate = form.elements.date.value;
+
+        if (cardDate) {
+
+            let parts = cardDate.split("-");
+
+            date.innerText = parts[1] + "/" + parts[0].slice(2);
+
+        } else {
+
+            date.innerText = "00/00";
+
+        }
+
+    }
+
+    // Следим за изменением текста в полях
+    for (let i = 0; i < form.elements.length; i++) {
+
+        form.elements[i].addEventListener("input", updateCard);
+
+        form.elements[i].addEventListener("change", updateCard);
+
+    }
+
+    // Не разрешаем вводить в номер карты буквы
+    form.elements.number.addEventListener("input", function() {
+
+        this.value = this.value.replace(/\D/g, "").slice(0, 16);
+
+        updateCard();
+
+    });
+
+    // Отправляем данные в таблицу
+    form.addEventListener("submit", function(e) {
+
+        e.preventDefault();
+
+        const row = document.createElement("tr");
+
+        const cardDate = form.elements.date.value.split("-");
+
+        const formattedDate =
+            cardDate[1] + "/" + cardDate[0].slice(2);
+
+        const values = [
+            form.elements.bank.value,
+            form.elements.system.value,
+            form.elements.number.value,
+            form.elements.owner.value,
+            formattedDate
+        ];
+
+        // Создаём ячейки и добавляем в них данные
+        for (let i = 0; i < values.length; i++) {
+
+            const cell = document.createElement("td");
+
+            cell.textContent = values[i];
+
+            row.append(cell);
+
+        }
+
+        tableBody.append(row);
+
+        // Очищаем форму и миниатюру
+        form.reset();
+
+        updateCard();
+
+    });
+
+    // Очищаем поля по кнопке
+    document.getElementById("clearButton").addEventListener("click", function() {
+
+        form.reset();
+
+        updateCard();
+
+    });
+
+</script>
+
+</body>
+</html>
